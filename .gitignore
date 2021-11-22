@@ -4,6 +4,8 @@ __pycache__/
 *$py.class
 #mac spotfile
 .DS_Store
+course2/task1/.DS_Store
+course2/.DS_Store
 
 #ignore project temp files
 course2/task1/CreditOne.csv
