@@ -1,0 +1,51 @@
+name,speed,distance
+Ford,4,2
+Jeep,4,4
+Honda,7,10
+KIA,7,10
+Toyota ,8,14
+BMW,9,16
+Mercedes,10,17
+GM,10,18
+Hyundai,10,20
+Infiniti,11,20
+Land Rover,11,22
+Lexus,12,24
+Mazda,12,26
+Mitsubishi,12,26
+Nissan,12,26
+GMC,13,26
+Fiat,13,28
+Chrysler,13,28
+Dodge,13,32
+Acura,14,32
+Audi,14,32
+Chevrolet,14,34
+Buick,14,34
+Ford,15,34
+Jeep,15,36
+Honda,15,36
+KIA,16,40
+Toyota ,16,40
+BMW,17,42
+Mercedes,17,46
+GM,17,46
+Hyundai,18,48
+Infiniti,18,50
+Land Rover,18,52
+Lexus,18,54
+Mazda,19,54
+Mitsubishi,19,56
+Nissan,19,56
+GMC,20,60
+Fiat,20,64
+Chrysler,20,66
+Dodge,20,68
+Acura,20,70
+Audi,22,76
+Chevrolet,23,80
+Buick,24,84
+Jeep,24,85
+Honda,24,92
+KIA,24,93
+Dodge,25,120
