@@ -65,6 +65,107 @@ getDoParWorkers()
 iphone_smallmatrix <- read.csv("iphone_smallmatrix_labeled_8d.csv")
 largematrix <- read.csv("LargeMatrix.csv")
 
+GSmallMatrix <- read.csv("galaxy_smallmatrix_labeled_9d.csv")
+
+#-----------------2. Explore the Data (Galaxy)-------------------------
+
+summary(GSmallMatrix)
+str(GSmallMatrix)
+head(GSmallMatrix)
+nrow(GSmallMatrix)
+ncol(GSmallMatrix)
+
+
+nrow(GSmallMatrix)
+ncol(GSmallMatrix)
+
+is.na(GSmallMatrix)
+any(is.na(GSmallMatrix))
+
+
+plot_ly(GSmallMatrix,x=~GSmallMatrix$galaxysentiment, type = 'histogram')
+
+#plot
+hist(GSmallMatrix$galaxysentiment)
+qqnorm(GSmallMatrix$galaxysentiment)
+
+#----------------3. Preprocessing & Feature Selection (Galaxy)--------------
+
+# 1-----Correlation----------------
+#select relevant columns for iphone
+
+
+options(max.print = 1000000)
+GSmallCOR1 <- cor(GSmallMatrix)
+corrplot(GSmallCOR1)
+
+GSmallCOR <- GSmallMatrix %>%
+  select (starts_with("galaxy"), starts_with("samsung"), galaxysentiment)
+
+# Use the cor() and corrplot() functions
+GSmallCOR2<- cor(GSmallCOR)
+corrplot(GSmallCOR2)
+
+str(GSmallCOR)
+
+
+# 2-----Examine Feature Variance----
+
+## Examine feature variance: nearZeroVar() with saveMetrics = TRUE 
+# returns an object containing a table including: 
+#frequency ratio, percentage unique, zero variance and near zero variance 
+
+nzvMetricsGS <- nearZeroVar(GSmallMatrix, saveMetrics = TRUE)
+nzvMetricsGS
+
+nzvGS <- nearZeroVar(GSmallMatrix, saveMetrics = FALSE)
+nzvGS
+
+# create a new data set and remove near zero variance features
+GSmallNZV <- GSmallMatrix[,-nzvGS]
+str(GSmallNZV)
+
+
+#--------Recursive Feature elimination---------
+
+#sample the data before using RFE
+set.seed(101)
+# Take 1000 sample and work through it.
+GSample <- GSmallMatrix [sample(1:nrow(GSmallMatrix), 1000, replace=FALSE),]
+
+#Set up rfeControl with randomforest, repeated cross validation and no updates
+ctrl <- rfeControl(functions= rfFuncs,
+                   method= "repeatedcv",
+                   repeats= 5,
+                   verbose= FALSE)
+
+#Use rfe and omit the response variable (attribute 59 iphonesentiment)
+rfeResults <- rfe(iphoneSample[,1:58],
+                  iphoneSample$iphonesentiment,
+                  sizes =(1:58),
+                  rfeControl=ctrl)
+
+rfeResults
+plot(rfeResults, type=c("g","o"))
+
+#create new data set with rfe recommended features
+iphoneRFE <- iphone_smallmatrix [,predictors(rfeResults)]
+
+# add the dependent variable to iphoneRFE
+iphoneRFE$iphonesentiment <- iphone_smallmatrix$iphonesentiment
+str(iphoneRFE)
+varImp(rfeResults)
+
+#-----------Preprocessing---------------------
+
+# Factorize the dependent variable 
+iphone_smallmatrix$iphonesentiment <- as.factor(iphone_smallmatrix$iphonesentiment)
+iphoneNZV$iphonesentiment <- as.factor(iphoneNZV$iphonesentiment)
+iphoneRFE$iphonesentiment <- as.factor(iphoneRFE$iphonesentiment)
+
+str(iphone_smallmatrix$iphonesentiment)
+
+
 
 #-----------------2. Explore the Data--------------------------
 
@@ -78,6 +179,8 @@ ncol(largematrix)
 nrow(iphone_smallmatrix)
 ncol(iphone_smallmatrix)
 
+is.na(largematrix)
+any(is.na(largematrix))
 
 
 plot_ly(iphone_smallmatrix,x=~iphone_smallmatrix$iphonesentiment, type = 'histogram')
@@ -282,6 +385,9 @@ rf_RC <- train(iphonesentiment~., data = training_RC, method = "rf", trControl=f
 # Testing 
 prediction_rf_RC<- predict(rf_RC, testing_RC) 
 
+# 1. Negative 2. Somewhat Negative.  3. somewhat positive  4. positive
+plot(prediction_rf_RC)
+
 # Evaluate the model
 postResample(prediction_rf_RC,testing_RC$iphonesentiment)
 
@@ -319,6 +425,34 @@ prediction_rf_pca<- predict(rf_pca, test.pca)
 
 # Evaluate the model
 postResample(prediction_rf_pca, test.pca$iphonesentiment)
+
+#######################################################
+#------------ Make Predictions on Large Matrix for iphone-----
+#######################################################
+
+
+largematrix$id <- NULL
+
+
+#Predicting
+finalprediction_rf_RC<- predict(rf_RC, largematrix) 
+
+# 1. Negative 2. Somewhat Negative.  3. somewhat positive  4. positive
+plot(finalprediction_rf_RC)
+
+summary(finalprediction_rf_RC)
+
+# Evaluate the model
+postResample(prediction_rf_RC,testing_RC$iphonesentiment)
+
+finalprediction_rf<- predict(rf, largematrix)
+plot(finalprediction_rf)
+
+summary(finalprediction_rf)
+
+
+#-------------------------Galaxy Phone------------------------------------------#
+
 
 #stop cluster after performing tasks.
 #stopCluster()
