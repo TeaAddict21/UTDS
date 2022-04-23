@@ -260,6 +260,8 @@ postResample(prediction_rf_RFE, testing_RFE$iphonesentiment)
 
 
 #-------------5.Feature Engineeering----------------------
+#----------Recode--------------
+
 iphoneRC <- iphone_smallmatrix
 
 # Recode sentiment to combine factor levels 0 & 1 and 4 & 5
@@ -280,6 +282,43 @@ rf_RC <- train(iphonesentiment~., data = training_RC, method = "rf", trControl=f
 # Testing 
 prediction_rf_RC<- predict(rf_RC, testing_RC) 
 
+# Evaluate the model
+postResample(prediction_rf_RC,testing_RC$iphonesentiment)
+
+
+#-----------------Principle Component Analysis-----------
+
+# Data = training and testing from iphone_smallmatrix (no feature selection) 
+# Excluded the dependent variable and set threshold to .95
+
+preprocessParams <- preProcess(training[,-59], method=c("center", "scale", "pca"), thresh = 0.95)
+print(preprocessParams)
+
+# Use predict to apply pca parameters, create training, exclude dependant
+train.pca <- predict(preprocessParams, training[,-59])
+
+# Add the dependent to training
+train.pca$iphonesentiment <- training$iphonesentiment
+
+# Use predict to apply pca parameters, create testing, exclude dependant
+test.pca <- predict(preprocessParams, testing[,-59])
+
+# Add the dependent to testing
+test.pca$iphonesentiment <- testing$iphonesentiment
+
+# 10 fold cross validation 
+fitControl <- trainControl(method = "cv", number = 10)
+
+# Apply RandomForest Model with 10-fold cross validation on Principal Component Analysis 
+rf_pca <- train(iphonesentiment~., data = train.pca, method = "rf", trControl=fitControl)
+
+# Testing 
+prediction_rf_pca<- predict(rf_pca, test.pca)
+
+#-----Model Evaluation on PCA Parameter
+
+# Evaluate the model
+postResample(prediction_rf_pca, test.pca$iphonesentiment)
 
 #stop cluster after performing tasks.
 #stopCluster()
