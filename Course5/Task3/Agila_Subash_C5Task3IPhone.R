@@ -54,7 +54,6 @@ library(dplyr)
 #Find the number of cores
 detectCores()
 
-
 #Create clusters with desired number of cores
 cl <- makeCluster(8)
 registerDoParallel(cl)
@@ -66,198 +65,30 @@ getDoParWorkers()
 iphone_smallmatrix <- read.csv("iphone_smallmatrix_labeled_8d.csv")
 largematrix <- read.csv("LargeMatrix.csv")
 
-GSmallMatrix <- read.csv("galaxy_smallmatrix_labeled_9d.csv")
 
 #-----------------2. Explore the Data (Galaxy)-------------------------
 
-summary(GSmallMatrix)
-str(GSmallMatrix)
-head(GSmallMatrix)
-nrow(GSmallMatrix)
-ncol(GSmallMatrix)
-
-
-nrow(GSmallMatrix)
-ncol(GSmallMatrix)
-
-is.na(GSmallMatrix)
-any(is.na(GSmallMatrix))
-
-
-plot_ly(GSmallMatrix,x=~GSmallMatrix$galaxysentiment, type = 'histogram')
-
-#plot
-hist(GSmallMatrix$galaxysentiment)
-qqnorm(GSmallMatrix$galaxysentiment)
-
-#----------------3. Preprocessing & Feature Selection (Galaxy)--------------
-
-# 1-----Correlation----------------
-#select relevant columns for iphone
-
-
-options(max.print = 1000000)
-GSmallCOR1 <- cor(GSmallMatrix)
-corrplot(GSmallCOR1)
-
-GSmallCOR <- GSmallMatrix %>%
-  select (starts_with("galaxy"), starts_with("samsung"), galaxysentiment)
-
-# Use the cor() and corrplot() functions
-GSmallCOR2<- cor(GSmallCOR)
-corrplot(GSmallCOR2)
-
-str(GSmallCOR)
-
-
-# 2-----Examine Feature Variance----
-
-## Examine feature variance: nearZeroVar() with saveMetrics = TRUE 
-# returns an object containing a table including: 
-#frequency ratio, percentage unique, zero variance and near zero variance 
-
-nzvMetricsGS <- nearZeroVar(GSmallMatrix, saveMetrics = TRUE)
-nzvMetricsGS
-
-nzvGS <- nearZeroVar(GSmallMatrix, saveMetrics = FALSE)
-nzvGS
-
-# create a new data set and remove near zero variance features
-GSmallNZV <- GSmallMatrix[,-nzvGS]
-str(GSmallNZV)
-
-
-#--------Recursive Feature elimination---------
-
-#sample the data before using RFE
-set.seed(101)
-# Take 1000 sample and work through it.
-GSample <- GSmallMatrix [sample(1:nrow(GSmallMatrix), 1000, replace=FALSE),]
-
-#Set up rfeControl with randomforest, repeated cross validation and no updates
-ctrl <- rfeControl(functions= rfFuncs,
-                   method= "repeatedcv",
-                   repeats= 5,
-                   verbose= FALSE)
-
-#Use rfe and omit the response variable (attribute 59 iphonesentiment)
-rfeResults <- rfe(GSample[,1:58],
-                  GSample$galaxysentiment,
-                  sizes =(1:58),
-                  rfeControl=ctrl)
-
-rfeResults
-
-plot(rfeResults, type=c("g","o"))
-
-#create new data set with rfe recommended features
-GSmallRFE <- GSmallMatrix [,predictors(rfeResults)]
-
-# add the dependent variable to iphoneRFE
-GSmallRFE$galaxysentiment <- GSmallMatrix$galaxysentiment
-str(GSmallRFE)
-varImp(rfeResults)
-
-#-----------Preprocessing---------------------
-
-# Factorize the dependent variable 
-GSmallMatrix$galaxysentiment <- as.factor(GSmallMatrix$galaxysentiment)
-GSmallNZV$galaxysentiment <- as.factor(GSmallNZV$igalaxysentiment)
-GSmallRFE$galaxysentiment <- as.factor(GSmallRFE$galaxysentiment)
-
-str(GSmallMatrix$galaxysentiment)
-
-#----------------------------------------------------------------------------
-
-#---4. Model Development and Evaluation (Galaxy)----------------------------
-
-#---------- Out of the Box Model Development------------------------
-
-
-# Define an 70%/30% train/test split of the galaxy
-inTraining <- createDataPartition(GSmallMatrix$galaxysentiment, p = .70, list = FALSE)
-training <- GSmallMatrix[inTraining,]
-testing <- GSmallMatrix[-inTraining,]
-
-# 10 fold cross validation 
-fitControl <- trainControl(method = "cv", number = 10)
-
-#--------- C5.0 training--------------
-C50 <- train(galaxysentiment~., data = training, method = "C5.0", trControl=fitControl)
-# Testing 
-prediction_C50 <- predict(C50, testing)
-
-plot(C50)
-
-
-##--------- Random Forest Train--------------
-rf <- train(galaxysentiment~., data = training, method = "rf", trControl=fitControl)
-# Testing 
-prediction_rf<- predict(rf, testing)
-
-plot(rf)
-##-------------SVM with 10-fold cross validation ------
-svm <- train(galaxysentiment~., data = training, method = "svmLinear", trControl=fitControl)
-# Testing 
-prediction_svm<- predict(svm, testing)
-
-plot(svm)
-###------------- KKNN with 10-fold cross validation------
-kknn <- train(galaxysentiment~., data = training, method = "kknn", trControl=fitControl)
-# Testing 
-prediction_kknn<- predict(kknn, testing)
-plot(kknn)
-
-
-#---------- Model Performance----------------
-
-# Evaluate C5.0 Model
-postResample(prediction_C50, testing$galaxysentiment)
-# Evaluate RF Model
-postResample(prediction_rf, testing$galaxysentiment)
-# Evaluate SVM Model
-postResample(prediction_svm, testing$galaxysentiment)
-# Evaluate KKNN Model
-postResample(prediction_kknn, testing$galaxysentiment)
-
-
-#------Confusion Metrics---------------
-
-# Create a confusion matrix from random forest predictions 
-CMRF <- confusionMatrix(prediction_rf, testing$galaxysentiment) 
-CMRF
-
-CM_C50 <- confusionMatrix(prediction_C50, testing$galaxysentiment)
-CM_C50
-
-
-
-
-#-----------------2. Explore the Data (iphone)--------------------------
-
-summary(largematrix)
-str(largematrix)
-head(largematrix)
-nrow(largematrix)
-ncol(largematrix)
+summary(iphone_smallmatrix)
+str(iphone_smallmatrix)
+head(iphone_smallmatrix)
+nrow(iphone_smallmatrix)
+ncol(iphone_smallmatrix)
 
 
 nrow(iphone_smallmatrix)
 ncol(iphone_smallmatrix)
 
-is.na(largematrix)
-any(is.na(largematrix))
+is.na(iphone_smallmatrix)
+any(is.na(iphone_smallmatrix))
 
 
 plot_ly(iphone_smallmatrix,x=~iphone_smallmatrix$iphonesentiment, type = 'histogram')
 
+summary(iphone_smallmatrix$iphonesentiment)
+
 #plot
 hist(iphone_smallmatrix$iphonesentiment)
-qqnorm(iphone_smallmatrix$iphonesentiment)
 
-#check for missing values
-is.na(iphone_smallmatrix)
-any(is.na(iphone_smallmatrix))
 
 #----------------3. Preprocessing & Feature Selection (iphone)--------------
 
@@ -292,6 +123,7 @@ nzv
 # create a new data set and remove near zero variance features
 iphoneNZV <- iphone_smallmatrix[,-nzv]
 str(iphoneNZV)
+summary(iphoneNZV)
 
  
 #--------Recursive Feature elimination- (iphone)--------
