@@ -330,28 +330,22 @@ postResample(prediction_rf_pca, test.pca$iphonesentiment)
 
 
 largematrix$id <- NULL
-
+largematrix$iphonesentiment <- as.factor(largematrix$iphonesentiment)
+summary(largematrix$iphonesentiment)
 
 #Predicting
-finalprediction_rf_RC<- predict(rf_RC, largematrix) 
-
-# 1. Negative 2. Somewhat Negative.  3. somewhat positive  4. positive
-plot(finalprediction_rf_RC)
-
-summary(finalprediction_rf_RC)
-
-# Evaluate the model
-postResample(prediction_rf_RC,testing_RC$iphonesentiment)
-
-finalprediction_rf<- predict(rf, largematrix)
-plot(finalprediction_rf)
-
-summary(finalprediction_rf)
+prediction_rf_final <- predict(rf, largematrix)
 
 
-#-------------------------Galaxy Phone------------------------------------------#
+
+summary(prediction_rf_final)
+summary(largematrix$iphonesentiment)
+
+
+
+#------------------------iPhone------------------------------------------#
 
 
 #stop cluster after performing tasks.
-#stopCluster()
+stopCluster(cl)
 

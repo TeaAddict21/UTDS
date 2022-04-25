@@ -54,6 +54,7 @@ library(dplyr)
 #Find the number of cores
 detectCores()
 
+
 #Create clusters with desired number of cores
 cl <- makeCluster(8)
 registerDoParallel(cl)
@@ -140,34 +141,99 @@ ctrl <- rfeControl(functions= rfFuncs,
                    verbose= FALSE)
 
 #Use rfe and omit the response variable (attribute 59 iphonesentiment)
-rfeResults <- rfe(iphoneSample[,1:58],
-                  iphoneSample$iphonesentiment,
+rfeResults <- rfe(GSample[,1:58],
+                  GSample$galaxysentiment,
                   sizes =(1:58),
                   rfeControl=ctrl)
 
 rfeResults
+
 plot(rfeResults, type=c("g","o"))
 
 #create new data set with rfe recommended features
-iphoneRFE <- iphone_smallmatrix [,predictors(rfeResults)]
+GSmallRFE <- GSmallMatrix [,predictors(rfeResults)]
 
 # add the dependent variable to iphoneRFE
-iphoneRFE$iphonesentiment <- iphone_smallmatrix$iphonesentiment
-str(iphoneRFE)
+GSmallRFE$galaxysentiment <- GSmallMatrix$galaxysentiment
+str(GSmallRFE)
 varImp(rfeResults)
 
 #-----------Preprocessing---------------------
 
 # Factorize the dependent variable 
-iphone_smallmatrix$iphonesentiment <- as.factor(iphone_smallmatrix$iphonesentiment)
-iphoneNZV$iphonesentiment <- as.factor(iphoneNZV$iphonesentiment)
-iphoneRFE$iphonesentiment <- as.factor(iphoneRFE$iphonesentiment)
+GSmallMatrix$galaxysentiment <- as.factor(GSmallMatrix$galaxysentiment)
+GSmallNZV$galaxysentiment <- as.factor(GSmallNZV$igalaxysentiment)
+GSmallRFE$galaxysentiment <- as.factor(GSmallRFE$galaxysentiment)
 
-str(iphone_smallmatrix$iphonesentiment)
+str(GSmallMatrix$galaxysentiment)
+
+#----------------------------------------------------------------------------
+
+#---4. Model Development and Evaluation (Galaxy)----------------------------
+
+#---------- Out of the Box Model Development------------------------
+
+
+# Define an 70%/30% train/test split of the galaxy
+inTraining <- createDataPartition(GSmallMatrix$galaxysentiment, p = .70, list = FALSE)
+training <- GSmallMatrix[inTraining,]
+testing <- GSmallMatrix[-inTraining,]
+
+# 10 fold cross validation 
+fitControl <- trainControl(method = "cv", number = 10)
+
+#--------- C5.0 training--------------
+C50 <- train(galaxysentiment~., data = training, method = "C5.0", trControl=fitControl)
+# Testing 
+prediction_C50 <- predict(C50, testing)
+
+plot(C50)
+
+
+##--------- Random Forest Train--------------
+rf <- train(galaxysentiment~., data = training, method = "rf", trControl=fitControl)
+# Testing 
+prediction_rf<- predict(rf, testing)
+
+plot(rf)
+##-------------SVM with 10-fold cross validation ------
+svm <- train(galaxysentiment~., data = training, method = "svmLinear", trControl=fitControl)
+# Testing 
+prediction_svm<- predict(svm, testing)
+
+plot(svm)
+###------------- KKNN with 10-fold cross validation------
+kknn <- train(galaxysentiment~., data = training, method = "kknn", trControl=fitControl)
+# Testing 
+prediction_kknn<- predict(kknn, testing)
+plot(kknn)
+
+
+#---------- Model Performance----------------
+
+# Evaluate C5.0 Model
+postResample(prediction_C50, testing$galaxysentiment)
+# Evaluate RF Model
+postResample(prediction_rf, testing$galaxysentiment)
+# Evaluate SVM Model
+postResample(prediction_svm, testing$galaxysentiment)
+# Evaluate KKNN Model
+postResample(prediction_kknn, testing$galaxysentiment)
+
+
+#------Confusion Metrics---------------
+
+# Create a confusion matrix from random forest predictions 
+CMRF <- confusionMatrix(prediction_rf, testing$galaxysentiment) 
+CMRF
+
+CM_C50 <- confusionMatrix(prediction_C50, testing$galaxysentiment)
+CM_C50
 
 
 
-#-----------------2. Explore the Data--------------------------
+
+#-----------------2. Explore the Data (iphone)--------------------------
 
 summary(largematrix)
 str(largematrix)
@@ -193,7 +259,7 @@ qqnorm(iphone_smallmatrix$iphonesentiment)
 is.na(iphone_smallmatrix)
 any(is.na(iphone_smallmatrix))
 
-#----------------3. Preprocessing & Feature Selection --------------
+#----------------3. Preprocessing & Feature Selection (iphone)--------------
 
 # 1-----Correlation----------------
 #select relevant columns for iphone
@@ -211,7 +277,7 @@ tempCOR2<- cor(iphoneCOR)
 corrplot(tempCOR2)
 
 
-# 2-----Examine Feature Variance----
+# 2-----Examine Feature Variance (iphone)----
 
 ## Examine feature variance: nearZeroVar() with saveMetrics = TRUE 
 # returns an object containing a table including: 
@@ -228,7 +294,7 @@ iphoneNZV <- iphone_smallmatrix[,-nzv]
 str(iphoneNZV)
 
  
-#--------Recursive Feature elimination---------
+#--------Recursive Feature elimination- (iphone)--------
 
 #sample the data before using RFE
 set.seed(101)
@@ -258,7 +324,7 @@ iphoneRFE$iphonesentiment <- iphone_smallmatrix$iphonesentiment
 str(iphoneRFE)
 varImp(rfeResults)
 
-#-----------Preprocessing---------------------
+#-----------Preprocessing (iphone)---------------------
 
 # Factorize the dependent variable 
 iphone_smallmatrix$iphonesentiment <- as.factor(iphone_smallmatrix$iphonesentiment)
@@ -268,12 +334,12 @@ iphoneRFE$iphonesentiment <- as.factor(iphoneRFE$iphonesentiment)
 str(iphone_smallmatrix$iphonesentiment)
 
 
-#---4. Model Development and Evaluation----------------------------
+#---4. Model Development and Evaluation (iphone)----------------------------
 
 #---------- Out of the Box Model Development------------------------
 
 
-# Define an 70%/30% train/test split of the iphoneDF
+# Define an 70%/30% train/test split of the iphone_smallmatrix
 inTraining <- createDataPartition(iphone_smallmatrix$iphonesentiment, p = .70, list = FALSE)
 training <- iphone_smallmatrix[inTraining,]
 testing <- iphone_smallmatrix[-inTraining,]
