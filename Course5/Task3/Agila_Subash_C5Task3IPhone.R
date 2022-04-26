@@ -86,6 +86,8 @@ plot_ly(iphone_smallmatrix,x=~iphone_smallmatrix$iphonesentiment, type = 'histog
 
 summary(iphone_smallmatrix$iphonesentiment)
 
+
+
 #plot
 hist(iphone_smallmatrix$iphonesentiment)
 
@@ -164,6 +166,7 @@ iphoneNZV$iphonesentiment <- as.factor(iphoneNZV$iphonesentiment)
 iphoneRFE$iphonesentiment <- as.factor(iphoneRFE$iphonesentiment)
 
 str(iphone_smallmatrix$iphonesentiment)
+summary(iphone_smallmatrix$iphonesentiment)
 
 
 #---4. Model Development and Evaluation (iphone)----------------------------
