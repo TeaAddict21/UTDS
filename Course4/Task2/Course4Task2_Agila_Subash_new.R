@@ -152,29 +152,10 @@ summary(updatedDF)
 data.frame(colnames(updatedDF))
 
 
-# Find the max of each of the three columns whose index is specified
-tDF1 <- mapply(max, updatedDF[,c(4,5,6)])
-tDF1
-barplot(tDF1, ylim= c(0,100), col= "green")
-
-# Find the sum of each of the three columns whose index is specified
-tDF2 <- mapply(sum, updatedDF[,c(4,5,6)])
-tDF2
-barplot(tDF2, ylim= c(0,10000000), col= "red")
-
-# Find the mean of each of the three columns whose index is specified
-tDF3 <- mapply(mean, updatedDF[,c(4,5,6)])
-tDF3
-barplot(tDF3, ylim= c(0,10), col= "red")
 
 
 
 #DFsub_meter <- newDF %>% gather(key= submeter, value= Value, Sub_metering_1 : Sub_metering_3)
-
-
-
-
-
 #7.sub_metering_1: energy sub-metering No. 1 (in watt-hour of active energy). 
 #It corresponds to the KITCHEN, containing mainly a dishwasher,
 #an oven and a microwave (hot plates are not electric but gas powered). 
