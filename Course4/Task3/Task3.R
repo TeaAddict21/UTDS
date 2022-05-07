@@ -44,15 +44,19 @@ rzv_training <- training[ -which(apply(training, 2, var) == 0 )]
 # check if all zero variance columns are removed
 which(apply(rzv_training, 2, var) == 0)
 
+# check headings of the last few variables with the first 2 observations
+head(rzv_training, n=2)[466:474]
 
-#Remove latitude and longitude since we have relative positioning
-names(rzv_training)[466:467]
-
-# Remove userid, phoneID, timestamp
-names(rzv_training)[472:474]
 
 # Remove dependent variables (longitude, latitude, userid, phoneID, timestamp)
-rzv_training <- rzv_training[, -c(466,467,472:474)]
+rzv_training <- rzv_training[, !names(rzv_training) %in% c("LONGITUDE","LATITUDE","USERID", "PHONEID", "TIMESTAMP")]
+
+#check the last four variables
+head(rzv_training, n=2)[466:469]
+
+
+
+
 
 #---------- Devise a single unique Identifier  ----------------------
 rzv_training$LOCATION <- paste(rzv_training$BUILDINGID, rzv_training$FLOOR,
@@ -66,21 +70,41 @@ str(rzv_training$LOCATION)
 #Restrict the models to individual buildings
 unique(rzv_training$BUILDINGID)
 
+head(rzv_training, n=2)[466:470]
+
 #It has 0,1,2 buildings.Create a subset for each building
 
 training_b0 <- subset(rzv_training, BUILDINGID == 0)
 training_b1 <- subset(rzv_training, BUILDINGID == 1)
 training_b2 <- subset(rzv_training, BUILDINGID == 2)
+
+
+
+head(training_b0, n=2)[466:469]
+
+head(training_b0, n=3)[466:470]
+
+
+
 # remove individual location variables
-training_b0[, c(467:470)] <- NULL
-training_b1[, c(467:470)] <- NULL
-training_b2[, c(467:470)] <- NULL
+
+training_b0 <- training_b0[, !names(training_b0) %in% c("FLOOR","BUILDINGID", "SPACEID", "RELATIVEPOSITION" )]
+training_b1 <- training_b1[, !names(training_b1) %in% c("FLOOR","BUILDINGID", "SPACEID", "RELATIVEPOSITION" )]
+training_b2 <- training_b2[, !names(training_b2) %in% c("FLOOR","BUILDINGID", "SPACEID", "RELATIVEPOSITION" )]
+
+
+
+
 # applying factor() to avoid extra levels
 training_b0$LOCATION <- factor(training_b0$LOCATION)
 training_b1$LOCATION <- factor(training_b1$LOCATION)
 training_b2$LOCATION <- factor(training_b2$LOCATION)
 # check how many levels of LOCATION for building0
 str(training_b0$LOCATION)
+
+head(training_b0, n=3)[465:466]
+head(training_b1, n=3)[465:466]
+head(training_b2, n=3)[465:466]
 
 
 set.seed(101)
@@ -114,7 +138,7 @@ prediction_KNN_b0 <- predict(KNN_b0, testing_b0ss)
 
 #----------------For Building_b1 subset--------------------------
 
-# split training and testing datasets for building 0 subset
+# split training and testing datasets for building 1 subset
 inTraining_b1 <- createDataPartition(training_b1$LOCATION, p = .75, list = FALSE )
 training_b1ss <- training_b1[inTraining_b1, ]
 testing_b1ss <- training_b1[-inTraining_b1, ]
